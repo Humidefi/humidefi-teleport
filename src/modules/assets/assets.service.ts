@@ -55,15 +55,41 @@ export class AssetsService {
     }
   }
 
-  public async relayToPara(data: TransferExtrinsicDto): Promise<any> {
+  // Asset Hub to XODE testnet transfer API
+  // https://substrate.stackexchange.com/questions/3104/sending-assets-from-parachain-to-relaychain-resulting-in-asset-not-found
+  public async assethubToPara(data: TransferExtrinsicDto): Promise<any> {
+    const { api, specName, safeXcmVersion } = await constructApiPromise('wss://rococo-asset-hub-rpc.polkadot.io');
+    const assetApi = new AssetTransferApi(api, 'asset-hub-rococo', safeXcmVersion);
+    let callInfo: TxResult<'call'>;
+    try {
+      callInfo = await assetApi.createTransferTransaction(
+        '4389', // Parachain ID of XODE testnet
+        data.wallet_address,
+        ['ROC'], // Native token of origin
+        [data.amount],
+        {
+          format: 'call',
+          xcmVersion: 2,
+        },
+      );
+      console.log(JSON.stringify(callInfo, null, 4));
+      return callInfo.tx;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // XODE testnet to Asset Hub transfer API
+  public async paraToAssetHub(data: TransferExtrinsicDto): Promise<any> {
     const { api, specName, safeXcmVersion } = await constructApiPromise(data.network);
     const assetApi = new AssetTransferApi(api, specName, safeXcmVersion);
     let callInfo: TxResult<'submittable'>;
     try {
       callInfo = await assetApi.createTransferTransaction(
-        '1000',
+        '1000', // Relay's Asset Hub parachain ID by default is 1000
         data.wallet_address,
-        ['XON'],
+        ['XON'], // Use the native token from the origin of asset to be transferred
         [data.amount],
         {
           format: 'submittable',

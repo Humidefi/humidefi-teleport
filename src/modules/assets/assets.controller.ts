@@ -41,12 +41,26 @@ export class AssetsController {
     }
   }
 
-  @Post('/extrinsic/transfer/relay-para')
+  @Post('/extrinsic/transfer/assethub-para')
   @ApiResponse({ status: 200, description: 'The assets "transfer" extrinsic has been successfully generated.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  async relayToPara(@Body() data: TransferExtrinsicDto): Promise<any> {
+  async assethubToPara(@Body() data: TransferExtrinsicDto): Promise<any> {
     try {
-      return await this.assetsService.relayToPara(data);
+      return await this.assetsService.assethubToPara(data);
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: error.toString() || 'Internal server error',
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Post('/extrinsic/transfer/para-assethub')
+  @ApiResponse({ status: 200, description: 'The assets "transfer" extrinsic has been successfully generated.' })
+  @ApiResponse({ status: 500, description: 'Internal server error.' })
+  async paraToAssetHub(@Body() data: TransferExtrinsicDto): Promise<any> {
+    try {
+      return await this.assetsService.paraToAssetHub(data);
     } catch (error) {
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
